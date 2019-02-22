@@ -42,7 +42,7 @@ typedef struct
 
 	//每个线程独立的IV
 	uint8_t *dev_IV;
-	
+
 	//转换查找表
 	uint32_t *dev_matrix_table_zero;
 	uint32_t *dev_linear_table_zero;
@@ -97,7 +97,7 @@ void Init_device_memory(device_memory *way, uint8_t add[16], uint8_t iv[12]);
 //认证加密接口函数
 void sm4_gcm_enc(device_memory *way, uint32_t counter, uint8_t input[PARTICLE_SIZE], uint8_t output[PARTICLE_SIZE]);
 //认证解密接口函数
-void sm4_gcm_enc(device_memory *way, uint32_t counter, uint8_t input[PARTICLE_SIZE], uint8_t output[PARTICLE_SIZE]);
+void sm4_gcm_dec(device_memory *way, uint32_t counter, uint8_t input[PARTICLE_SIZE], uint8_t output[PARTICLE_SIZE]);
 //计算标签接口函数
 void sm4_gcm_final(device_memory *way, uint64_t length, uint8_t tag[PARTICLE_SIZE]);
 //释放存储空间接口函数

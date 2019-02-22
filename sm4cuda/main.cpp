@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <iostream>
+#include <arpa/inet.h>
 
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
@@ -11,9 +12,9 @@
 
 using namespace std;
 
-#define POS	 109
+#define POS	 1367 
 
-#define LEN  48
+#define LEN  480
 
 int main()
 {
@@ -56,7 +57,7 @@ int main()
 	clockBegin = clock();
 	for (int i = 0; i < LEN; i++)
 	{
-		sm4_gcm_enc(way, i + 1, input, output);
+		sm4_gcm_enc(way, htonl(i + 1), input, output);
 	}
 	clockEnd = clock();
 	printf("GPU use %d ms\n", clockEnd - clockBegin);

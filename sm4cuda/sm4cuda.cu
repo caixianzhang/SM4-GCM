@@ -32,7 +32,7 @@ uint8_t SboxTable[256] = { \
 uint32_t FK[4] = { 0xa3b1bac6,0x56aa3350,0x677d9197,0xb27022dc };
 
 /* fixed parameter */
-uint32_t CK[32] ={ \
+uint32_t CK[32] = { \
 	0x00070e15,0x1c232a31,0x383f464d,0x545b6269, \
 	0x70777e85,0x8c939aa1,0xa8afb6bd,0xc4cbd2d9, \
 	0xe0e7eef5,0xfc030a11,0x181f262d,0x343b4249, \
@@ -526,7 +526,7 @@ __global__ void kernal_linear_to_matrix(\
 	//以对齐合并访存的方式将数据从全局内存缓存到共享内存
 	{
 		uint32_t *read = (uint32_t *)(dev_linear + dev_offset);
-	    uint32_t *write = (uint32_t *)(linear + share_offset);
+		uint32_t *write = (uint32_t *)(linear + share_offset);
 
 		#pragma unroll 4
 		for (int i = 0; i < 4; i++)
@@ -568,7 +568,7 @@ __global__ void kernal_linear_to_matrix(\
 
 	//同步点
 	__syncthreads();
-	
+
 	//以对齐合并访存的方式将数据从共享内存写回全局内存
 	{
 		uint32_t *write = (uint32_t *)(dev_matrix + dev_offset);
@@ -681,7 +681,7 @@ __global__ void kernal_enc(uint8_t *const __restrict__ dev_SboxTable, \
 	__shared__ uint8_t smem[16 * BLOCK_SIZE * 2];
 	uint8_t *matrix = smem;
 	uint8_t *linear = smem + 16 * BLOCK_SIZE;
-	uint8_t *rw_matrix = matrix + (threadIdx.x / 32) * (16 * 32) + (threadIdx.x % 32) * 4; 
+	uint8_t *rw_matrix = matrix + (threadIdx.x / 32) * (16 * 32) + (threadIdx.x % 32) * 4;
 	uint32_t dev_offset = blockIdx.x * blockDim.x * 16 + threadIdx.x * 4;
 	uint32_t share_offset = threadIdx.x * 4;
 
@@ -691,12 +691,12 @@ __global__ void kernal_enc(uint8_t *const __restrict__ dev_SboxTable, \
 		uint32_t *write = (uint32_t *)(matrix + share_offset);
 
 		#pragma unroll 4
-		for(int i = 0; i < 4; i++)
+		for (int i = 0; i < 4; i++)
 		{
 			*(write + i * BLOCK_SIZE) = *(read + i * BLOCK_SIZE);
 		}
 	}
-	
+
 	//同步点
 	__syncthreads();
 
@@ -730,7 +730,7 @@ __global__ void kernal_enc(uint8_t *const __restrict__ dev_SboxTable, \
 			uint32_t temp;
 			uint8_t a[4];
 			uint32_t bb;
-			
+
 			#pragma unroll 32
 			for (int i = 0; i < 32; i++)
 			{
@@ -748,7 +748,7 @@ __global__ void kernal_enc(uint8_t *const __restrict__ dev_SboxTable, \
 				ulbuf[(i + 4) % 5] = ulbuf[(i + 0) % 5] ^ bb;
 			}
 		}
-	
+
 		{
 			//填写本线程密文输出起始地址(矩形存储模式)，密文存放在共享内存
 			uint8_t *write = rw_matrix;
@@ -808,7 +808,7 @@ __global__ void kernal_enc(uint8_t *const __restrict__ dev_SboxTable, \
 		write = (uint32_t *)(linear + warpaddr + dev_linear_table_three[inertid]);
 		*write = *read;
 	}
-	
+
 	//同步点
 	__syncthreads();
 
@@ -825,9 +825,8 @@ __global__ void kernal_enc(uint8_t *const __restrict__ dev_SboxTable, \
 		}
 	}
 }
-
 /*
-**	有限域乘法域加法运算核函数
+**	有限域乘法和加法运算核函数
 **	dev_gfmult_table:有限域乘法表
 **	dev_cipher:密文输入(矩形存储模式)
 **	dev_gfmult:有限域乘法结果(矩形存储模式)
@@ -887,7 +886,7 @@ __global__ void kernal_gfmult(\
 				#pragma unroll 16
 				for (int k = 0; k < 16; k++)
 				{
-						tid_gfmult[k] ^= dev_gfmult_table[i * 4 + j][temp][k];
+					tid_gfmult[k] ^= dev_gfmult_table[i * 4 + j][temp][k];
 				}
 			}
 		}
@@ -951,7 +950,7 @@ __global__ void kernal_final(\
 
 	//同步点
 	__syncthreads();
-	
+
 	{
 		uint8_t *tid_cipher = matrix + (threadIdx.x / 32) * (16 * 32) + (threadIdx.x % 32) * 4;
 		uint8_t temp;
@@ -983,7 +982,7 @@ __global__ void kernal_final(\
 				}
 			}
 		}
-	
+
 		//每个线程与ency0异或生成最终的tag
 		#pragma unroll 4
 		for (int i = 0; i < 4; i++)
@@ -1005,7 +1004,7 @@ __global__ void kernal_final(\
 
 	//同步点
 	__syncthreads();
-	
+
 	//将共享内存中的乘法结果对齐合并访存的方式写回全局内存
 	{
 		uint32_t *write = (uint32_t *)(dev_gfmult + dev_offset);
@@ -1019,12 +1018,7 @@ __global__ void kernal_final(\
 	}
 }
 
-/*
-**	主机接口函数:本函数完成相关数据预计算，以及设备内存的初始化。
-**	way:相关设备内存
-**	add:认证数据
-**	iv:初始向量
-*/
+
 void Init_device_memory(device_memory *way, uint8_t add[16], uint8_t iv[12])
 {
 	//创建流
@@ -1063,16 +1057,17 @@ void Init_device_memory(device_memory *way, uint8_t add[16], uint8_t iv[12])
 
 	//初始化IV存储空间
 	cudaHostAlloc((void**)&(way->dev_IV), PARTICLE_SIZE, cudaHostAllocDefault);
-	
+
 	//初始化每个线程的IV
 	uint8_t *tempiv = (uint8_t *)malloc(PARTICLE_SIZE);
+	
 	for (int i = 0; i < PARTICLE_SIZE / 16; i++)
 	{
 		memcpy(tempiv + i * 16, iv, 12);
-		//对每个线程的IV进行扩展
-		*(uint32_t *)(tempiv + i * 16 + 8) += i;
+		//若需要对每个线程的IV不同则需要进行扩展
+		//*(uint32_t *)(tempiv + i * 16 + 8) += i;
 	}
-
+	
 	{
 		dim3 grid(GRID_SIZE, 1, 1);
 		dim3 block(BLOCK_SIZE, 1, 1);
@@ -1186,7 +1181,7 @@ void Init_device_memory(device_memory *way, uint8_t add[16], uint8_t iv[12])
 			cudaStreamSynchronize(way->stream[i]);
 		}
 	}
-	
+
 	free(gfmult_init);
 }
 
@@ -1236,7 +1231,7 @@ void sm4_gcm_enc(device_memory *way, uint32_t counter, uint8_t input[PARTICLE_SI
 {
 	dim3 grid(GRID_SIZE, 1, 1);
 	dim3 block(BLOCK_SIZE, 1, 1);
-	
+
 	for (int i = 0; i < STREAM_SIZE; i++)
 	{
 		//将明文从主机内存拷贝到设备全局内存
@@ -1260,7 +1255,7 @@ void sm4_gcm_enc(device_memory *way, uint32_t counter, uint8_t input[PARTICLE_SI
 			way->dev_input + i * (PARTICLE_SIZE / STREAM_SIZE), \
 			way->dev_output + i * (PARTICLE_SIZE / STREAM_SIZE));
 	}
-	
+
 	for (int i = 0; i < STREAM_SIZE; i++)
 	{
 		//将加密后的密文数据块从设备全局内存拷贝到主机内存
@@ -1269,7 +1264,7 @@ void sm4_gcm_enc(device_memory *way, uint32_t counter, uint8_t input[PARTICLE_SI
 			PARTICLE_SIZE / STREAM_SIZE, \
 			cudaMemcpyDeviceToHost, way->stream[i]);
 	}
-	
+
 	for (int i = 0; i < STREAM_SIZE; i++)
 	{
 		//将线性存储模式的密文数据块转化为矩形存储模式
@@ -1290,7 +1285,7 @@ void sm4_gcm_enc(device_memory *way, uint32_t counter, uint8_t input[PARTICLE_SI
 			way->dev_input + i * (PARTICLE_SIZE / STREAM_SIZE), \
 			way->dev_gfmult + i * (PARTICLE_SIZE / STREAM_SIZE));
 	}
-	
+
 	for (int i = 0; i < STREAM_SIZE; i++)
 	{
 		//流同步
@@ -1421,7 +1416,7 @@ void sm4_gcm_final(device_memory *way, uint64_t length, uint8_t tag[PARTICLE_SIZ
 			way->dev_gfmult + i * (PARTICLE_SIZE / STREAM_SIZE), \
 			way->dev_gfmult + i * (PARTICLE_SIZE / STREAM_SIZE));
 	}
-	
+
 	for (int i = 0; i < STREAM_SIZE; i++)
 	{
 		//将每个线程的标签tag从全局内存拷贝回主机内存
