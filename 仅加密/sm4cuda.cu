@@ -767,30 +767,32 @@ __global__ void kernal_enc(uint8_t *const __restrict__ dev_SboxTable, \
 
 		{
 			//填写本线程密文输出起始地址(矩形存储模式)，密文存放在共享内存
+			uint8_t temp[4];
 			uint8_t *write = rw_matrix;
 
-			write[0] = (uint8_t)(ulbuf[0] >> 24);
-			write[1] = (uint8_t)(ulbuf[0] >> 16);
-			write[2] = (uint8_t)(ulbuf[0] >> 8);
-			write[3] = (uint8_t)ulbuf[0];
+			temp[0] = (uint8_t)(ulbuf[0] >> 24);
+			temp[1] = (uint8_t)(ulbuf[0] >> 16);
+			temp[2] = (uint8_t)(ulbuf[0] >> 8);
+			temp[3] = (uint8_t)ulbuf[0];
+			*(uint32_t *)(rw_matrix + 0 * 128) = *(uint32_t *)temp;
 
-			write = write + 32 * 4;
-			write[0] = (uint8_t)(ulbuf[4] >> 24);
-			write[1] = (uint8_t)(ulbuf[4] >> 16);
-			write[2] = (uint8_t)(ulbuf[4] >> 8);
-			write[3] = (uint8_t)ulbuf[4];
+			temp[0] = (uint8_t)(ulbuf[4] >> 24);
+			temp[1] = (uint8_t)(ulbuf[4] >> 16);
+			temp[2] = (uint8_t)(ulbuf[4] >> 8);
+			temp[3] = (uint8_t)ulbuf[4];
+			*(uint32_t *)(rw_matrix + 1 * 128) = *(uint32_t *)temp;
 
-			write = write + 32 * 4;
-			write[0] = (uint8_t)(ulbuf[3] >> 24);
-			write[1] = (uint8_t)(ulbuf[3] >> 16);
-			write[2] = (uint8_t)(ulbuf[3] >> 8);
-			write[3] = (uint8_t)ulbuf[3];
+			temp[0] = (uint8_t)(ulbuf[3] >> 24);
+			temp[1] = (uint8_t)(ulbuf[3] >> 16);
+			temp[2] = (uint8_t)(ulbuf[3] >> 8);
+			temp[3] = (uint8_t)ulbuf[3];
+			*(uint32_t *)(rw_matrix + 2 * 128) = *(uint32_t *)temp;
 
-			write = write + 32 * 4;
-			write[0] = (uint8_t)(ulbuf[2] >> 24);
-			write[1] = (uint8_t)(ulbuf[2] >> 16);
-			write[2] = (uint8_t)(ulbuf[2] >> 8);
-			write[3] = (uint8_t)ulbuf[2];
+			temp[0] = (uint8_t)(ulbuf[2] >> 24);
+			temp[1] = (uint8_t)(ulbuf[2] >> 16);
+			temp[2] = (uint8_t)(ulbuf[2] >> 8);
+			temp[3] = (uint8_t)ulbuf[2];
+			*(uint32_t *)(rw_matrix + 3 * 128) = *(uint32_t *)temp;
 		}
 	}
 
